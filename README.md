@@ -14,30 +14,9 @@ and toggle individual info panels on/off.
 
 ## Demo
 
-```text
-$ weather Tokyo
-
-  🇯🇵 Tokyo, Tokyo, Japan
-
-  ⛅  17°  ·  Partly cloudy  Feels like 19°
-
-  ──  5-Day Forecast  ─────────────────────────────────
-  Tue 26  ☁️  26°/17°  ← 7 km/h  💧2%
-  Wed 27  ⛅  27°/19°  ← 7 km/h  💧31%
-  Thu 28  🌦  26°/21°  ↑ 8 km/h  💧53%
-  Fri 29  🌦  32°/21°  ↓ 13 km/h  💧55%
-  Sat 30  ☁️  27°/19°  ↑ 18 km/h  💧20%
-
-  ──  Details  ──────────────────────────────────
-  Humidity  98%       Wind      ↓ 3 km/h
-  Cloud     77%       Gusts     ↓ 8 km/h
-  Pressure  1015 hPa  UV Index  0
-  Precip    💧 0      Sunrise   04:29
-              Sunset    18:47
-
-  ────────────────────────────────────────────
-  Updated 03:00 · 316ms · data from Open-Meteo
-```
+<p align="center">
+  <img src="demo.svg" width="100%" alt="weather demo">
+</p>
 
 ---
 
