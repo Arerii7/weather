@@ -2,7 +2,6 @@
 
 > Beautiful weather forecast in your terminal
 
-[![npm version](https://img.shields.io/npm/v/weather-cli-forecast?label=npm&color=purple)](https://npmjs.com/package/weather-cli-forecast)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-blue)](package.json)
 
@@ -45,23 +44,13 @@ $ weather Tokyo
 ## Install
 
 ```sh
-npm install -g weather-cli-forecast
-```
-
-Or run directly:
-
-```sh
-npx weather-cli-forecast Tokyo
-```
-
-### From source
-
-```sh
-git clone https://github.com/yourname/weather
+git clone https://github.com/Arerii7/weather
 cd weather
 npm install && npm run build
-npm link            # now "weather" is available globally
+npm link
 ```
+
+Now `weather` is available globally. Rebuild with `npm run build` after pulling updates.
 
 ---
 
