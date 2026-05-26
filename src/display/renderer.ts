@@ -1,11 +1,7 @@
 import chalk from 'chalk'
 import type { Theme, WeatherData, UnitSystem, HistoryEntry, Config, DailyForecast, CurrentWeather } from '../types.js'
+import { getWindDirectionArrow, weatherIcon, weatherDescription } from '../types.js'
 import { getTheme } from '../themes/index.js'
-import { getWindDirectionArrow } from '../types.js'
-import { weatherIcon, weatherDescription } from './icons.js'
-import { renderCurrent } from './conditions.js'
-import { renderForecast } from './forecast.js'
-import { renderDetails } from './details.js'
 
 function formatTimeDisplay(iso: string): string {
   const d = new Date(iso)
@@ -23,10 +19,124 @@ function getUnitLabels(units: UnitSystem): { temp: string; speed: string; precip
   }
 }
 
-export function renderJSON(data: WeatherData, units: UnitSystem): string {
-  const flags = { wind: true, humidity: true, pressure: true, uv: true, sun: true, precip: true }
-  const speedLabel = getUnitLabels(units).speed
+function renderCurrent(
+  weather: CurrentWeather,
+  theme: Theme,
+  hideIcon: boolean = false
+): string[] {
+  const lines: string[] = []
+  const icon = hideIcon ? '' : `${chalk.hex(theme.icon)(weatherIcon(weather.weatherCode))}  `
+  const desc = weatherDescription(weather.weatherCode)
+  const temp = Math.round(weather.temperature)
+  const feelsLike = Math.round(weather.apparentTemperature)
 
+  lines.push('')
+  lines.push(
+    `  ${icon}${chalk.hex(theme.primary).bold(`${temp}°`)}  ${chalk.hex(theme.secondary)('·')}  ${chalk.hex(theme.secondary)(desc)}  ${chalk.hex(theme.dim)(`Feels like ${feelsLike}°`)}`
+  )
+  lines.push('')
+
+  return lines
+}
+
+function renderForecast(
+  forecast: DailyForecast[],
+  theme: Theme,
+  days: number,
+  speedUnit: string,
+  hideIcon: boolean = false
+): string[] {
+  const lines: string[] = []
+
+  const header = chalk.hex(theme.dim)(`  ──  ${days}-Day Forecast  ${'─'.repeat(Math.max(0, 34 - days.toString().length))}`)
+  lines.push(header)
+
+  for (const day of forecast) {
+    const date = new Date(day.date)
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const weekday = weekdays[date.getDay()]
+    const dayNum = date.getDate()
+
+    const icon = hideIcon ? '' : `${weatherIcon(day.weatherCode)}  `
+    const high = chalk.hex(theme.tempHigh)(`${Math.round(day.tempMax)}°`)
+    const low = chalk.hex(theme.tempLow)(`${Math.round(day.tempMin)}°`)
+    const arrow = chalk.hex(theme.secondary)(getWindDirectionArrow(day.windDirectionDominant))
+    const wind = chalk.hex(theme.secondary)(`${Math.round(day.windSpeedMax)} ${speedUnit}`)
+
+    const dayLabel = chalk.hex(theme.primary)(`${weekday} ${dayNum}`)
+    const precip = day.precipitationProbability > 0
+      ? chalk.hex(theme.dim)(`  💧${Math.round(day.precipitationProbability)}%`)
+      : ''
+
+    lines.push(
+      `  ${dayLabel}  ${icon}${high}/${low}  ${arrow} ${wind}${precip}`
+    )
+  }
+
+  lines.push('')
+  return lines
+}
+
+function renderDetails(
+  current: CurrentWeather,
+  forecast: DailyForecast[],
+  theme: Theme,
+  speedUnit: string,
+  toggles: { wind?: boolean; humidity?: boolean; pressure?: boolean; uv?: boolean; sun?: boolean; precip?: boolean } = {}
+): string[] {
+  const lines: string[] = []
+  const today = forecast[0]
+
+  const show = {
+    wind: toggles.wind ?? true,
+    humidity: toggles.humidity ?? true,
+    pressure: toggles.pressure ?? true,
+    uv: toggles.uv ?? true,
+    sun: toggles.sun ?? true,
+    precip: toggles.precip ?? true,
+  }
+
+  const hasAny = show.wind || show.humidity || show.pressure || show.uv || show.sun || show.precip
+  if (!hasAny) return []
+
+  lines.push(chalk.hex(theme.dim)(`  ──  Details  ${'─'.repeat(34)}`))
+
+  const humidity = chalk.hex(theme.primary)(`${current.relativeHumidity}%`)
+  const pressure = chalk.hex(theme.primary)(`${Math.round(current.pressure)} hPa`)
+  const uv = chalk.hex(theme.primary)(`${current.uvIndex}`)
+  const cloud = chalk.hex(theme.primary)(`${current.cloudCover}%`)
+  const precip = chalk.hex(theme.primary)(current.precipitation > 0 ? `${current.precipitation.toFixed(1)}` : '0')
+  const windArrow = chalk.hex(theme.secondary)(getWindDirectionArrow(current.windDirection))
+  const windGusts = chalk.hex(theme.primary)(`${Math.round(current.windGusts)} ${speedUnit}`)
+  const windSpeed = chalk.hex(theme.primary)(`${Math.round(current.windSpeed)} ${speedUnit}`)
+  const sunrise = today ? chalk.hex(theme.primary)(today.sunrise) : '--:--'
+  const sunset = today ? chalk.hex(theme.primary)(today.sunset) : '--:--'
+
+  const pad = 10
+
+  function col(label: string, value: string): string {
+    return `${chalk.hex(theme.dim)(label.padEnd(pad))}${value}`
+  }
+
+  const rows: string[] = []
+
+  if (show.humidity) rows.push(`  ${col('Humidity', humidity.padEnd(8))}  ${show.wind ? col('Wind', `${windArrow} ${windSpeed}`) : ''}`)
+  if (show.humidity) rows.push(`  ${col('Cloud', cloud.padEnd(8))}  ${show.wind ? col('Gusts', `${windArrow} ${windGusts}`) : ''}`)
+
+  if (show.pressure) rows.push(`  ${col('Pressure', pressure.padEnd(8))}  ${show.uv ? col('UV Index', uv) : ''}`)
+  if (show.precip) rows.push(`  ${col('Precip', `💧 ${precip}`.padEnd(8))}  ${col('', '')}`)
+  if (show.sun) rows.push(`  ${col('', '')}  ${sunrise ? col('Sunrise', sunrise) : col('', '')}`)
+  if (show.sun && sunset) rows.push(`  ${col('', '')}  ${col('Sunset', sunset)}`)
+
+  for (const row of rows) {
+    if (row.trim()) lines.push(row)
+  }
+
+  lines.push('')
+  return lines
+}
+
+export function renderJSON(data: WeatherData, units: UnitSystem): string {
   const obj = {
     location: {
       name: data.location,
@@ -41,7 +151,7 @@ export function renderJSON(data: WeatherData, units: UnitSystem): string {
       humidity: data.current.relativeHumidity,
       weatherCode: data.current.weatherCode,
       description: weatherDescription(data.current.weatherCode),
-      icon: weatherIcon(data.current.weatherCode, data.current.isDay),
+      icon: weatherIcon(data.current.weatherCode),
       windSpeed: data.current.windSpeed,
       windDirection: data.current.windDirection,
       windArrow: getWindDirectionArrow(data.current.windDirection),
@@ -57,7 +167,7 @@ export function renderJSON(data: WeatherData, units: UnitSystem): string {
       date: d.date,
       weatherCode: d.weatherCode,
       description: weatherDescription(d.weatherCode),
-      icon: weatherIcon(d.weatherCode, true),
+      icon: weatherIcon(d.weatherCode),
       tempMax: d.tempMax,
       tempMin: d.tempMin,
       precipitationSum: d.precipitationSum,
@@ -90,7 +200,7 @@ export function renderFormat(data: WeatherData, units: UnitSystem, format: strin
   const speedLabel = getUnitLabels(units).speed
 
   const values: Record<string, string> = {
-    'c': weatherIcon(data.current.weatherCode, data.current.isDay),
+    'c': weatherIcon(data.current.weatherCode),
     'C': weatherDescription(data.current.weatherCode),
     't': `${Math.round(data.current.temperature)}°`,
     'f': `${Math.round(data.current.apparentTemperature)}°`,

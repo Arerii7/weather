@@ -4,6 +4,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-blue)](package.json)
+[![npm](https://img.shields.io/npm/v/cliweather?color=blueviolet)](https://npmjs.com/package/cliweather)
 
 **weather** is a minimal, zero-dependency (except `chalk` + `commander`) CLI that
 pulls 7-day forecasts from [Open-Meteo](https://open-meteo.com/) — a free, no-key
@@ -23,13 +24,14 @@ and toggle individual info panels on/off.
 ## Install
 
 ```sh
-git clone https://github.com/Arerii7/weather
-cd weather
-npm install && npm run build
-npm link
+npm install -g cliweather
 ```
 
-Now `weather` is available globally. Rebuild with `npm run build` after pulling updates.
+Or run directly:
+
+```sh
+npx cliweather Tokyo
+```
 
 ---
 

@@ -2,8 +2,7 @@
 
 import { Command } from 'commander'
 import chalk from 'chalk'
-import { resolveCity } from './api/geocoding.js'
-import { fetchWeather, setCacheTtl } from './api/weather.js'
+import { resolveCity, fetchWeather, setCacheTtl } from './api/index.js'
 import { loadConfig, updateConfig, loadHistory, saveHistory, clearHistory as clearHistoryStore, getConfigDir } from './config.js'
 import { renderWeather, renderError, renderHistory, renderConfig, renderJSON, renderFormat } from './display/renderer.js'
 import { getAllThemes, getTheme } from './themes/index.js'
@@ -186,7 +185,7 @@ async function main(): Promise<void> {
   let geo: GeoResult
 
   if (hasCoords) {
-    if (opts.lat < -90 || opts.lat > 90 || opts.lon < -180 || opts.lon > 180) {
+    if (isNaN(opts.lat) || isNaN(opts.lon) || opts.lat < -90 || opts.lat > 90 || opts.lon < -180 || opts.lon > 180) {
       console.log(renderError('Invalid coordinates. Latitude: -90 to 90, Longitude: -180 to 180'))
       return
     }

@@ -119,7 +119,7 @@ export const WMO_CODES: Record<number, { icon: string; description: string }> = 
   99: { icon: '⛈', description: 'Thunderstorm with heavy hail' },
 }
 
-export const WIND_DIRECTIONS: Record<number, string> = {
+const WIND_DIRECTIONS: Record<number, string> = {
   0: '↓', 45: '↙', 90: '←', 135: '↖',
   180: '↑', 225: '↗', 270: '→', 315: '↘',
 }
@@ -129,3 +129,13 @@ export function getWindDirectionArrow(degrees: number): string {
   const arrows = ['↓', '↙', '←', '↖', '↑', '↗', '→', '↘']
   return arrows[index]
 }
+
+export function weatherIcon(code: number): string {
+  return WMO_CODES[code]?.icon ?? '❓'
+}
+
+export function weatherDescription(code: number): string {
+  return WMO_CODES[code]?.description ?? 'Unknown'
+}
+
+
